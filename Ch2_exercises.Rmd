@@ -1,5 +1,6 @@
 ---
 title: "Statistical Rethinking Ch. 2 Exercises"
+author: Cassandra
 output: 
   html_document: 
     keep_md: yes
@@ -9,7 +10,9 @@ output:
 
 ## 2E1
 Which of the expressions below correspond to the statement: the probability of rain on Monday?  
-**Pr(rain, Monday)/Pr(Monday)**
+**Pr(rain|Monday)**
+You observed that it is Monday, what is the probability that it's raining?
+**Pr(rain, Monday)/Pr(Monday)** means the same as above
 
 
 ## 2E2
@@ -19,6 +22,7 @@ Which of the following statements corresponds to the expression: Pr(Monday|rain)
 ## 2E3
 Which of the expressions below corresponds to the statement: the probability that it is Monday, given that it is raining?  
 **Pr(Monday|rain)**
+**Pr(rain|Monday)Pr(Monday)/Pr(rain)**
 
 ## 2M1
 Recall the globe tossing model from the chapter. Compute and plot the grid approximate posterior distribution for each of the following sets of observations. In each case, assume a uniform prior for p.  
