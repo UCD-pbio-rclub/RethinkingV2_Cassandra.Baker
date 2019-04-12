@@ -1,5 +1,6 @@
 ---
 title: "Statistical Rethinking Ch. 2 Exercises"
+author: Cassandra
 output: 
   html_document: 
     keep_md: yes
@@ -9,7 +10,9 @@ output:
 
 ## 2E1
 Which of the expressions below correspond to the statement: the probability of rain on Monday?  
-**Pr(rain, Monday)/Pr(Monday)**
+**Pr(rain|Monday)**  
+You observed that it is Monday, what is the probability that it's raining?  
+**Pr(rain, Monday)/Pr(Monday)** means the same as above
 
 
 ## 2E2
@@ -18,7 +21,8 @@ Which of the following statements corresponds to the expression: Pr(Monday|rain)
 
 ## 2E3
 Which of the expressions below corresponds to the statement: the probability that it is Monday, given that it is raining?  
-**Pr(Monday|rain)**
+**Pr(Monday|rain)**  
+**Pr(rain|Monday)Pr(Monday)/Pr(rain)**
 
 ## 2M1
 Recall the globe tossing model from the chapter. Compute and plot the grid approximate posterior distribution for each of the following sets of observations. In each case, assume a uniform prior for p.  
@@ -30,6 +34,14 @@ prior <- rep(1, 20)
 likelihood <- dbinom(3, size = 3, prob = p_grid)
 unstd.posterior <- likelihood * prior
 posterior <- unstd.posterior / sum(unstd.posterior)
+sum(posterior) # should sum to 1
+```
+
+```
+## [1] 1
+```
+
+```r
 plot(p_grid, posterior, type = "b",
      xlab = "probability of water", 
      ylab = "posterior probability")
@@ -110,12 +122,16 @@ plot(p_grid, posterior, type = "b",
 Suppose there are two globes, one for Earth and one for Mars. The Earth globe is 70% covered in water. The Mars globe is 100% land. Further suppose that one of these globes - you don't know which - was tossed in the air and produced a "land" observation. Assume that each globe was equally likely to be tossed. Show that the posterior probability that the globe was the Earth, condition on seeing "land" (Pr(Earth|land)), is 0.23.
 
 ```r
-# probability of Earth when land is observed
-30/130
+prior <- c(0.5, 0.5) #equally likely to be Earth or Mars
+probability <- c(0.3, 1) #probability of land for Earth or Mars
+likelihood <- dbinom(1, 1, probability)
+unstd.posterior <- likelihood * prior
+posterior <- unstd.posterior / sum(unstd.posterior)
+posterior
 ```
 
 ```
-## [1] 0.2307692
+## [1] 0.2307692 0.7692308
 ```
 
 
@@ -140,3 +156,14 @@ Now suppose there are four cards: B/B, B/W, W/W, and another B/B. Again suppose 
 | BB   | 2       | 2         |
 
 **Probability = 4/5**
+
+## 2M6
+Imagine that black ink is heavy, and so cards with black sides are heavier than cards with white sides. As a result, it's less liekly that a card with black sides is pulled from the bag. So again assume there are three cards: B/B, B/W, and W/W. After experimenting a number of times, you conclude that for every way to pull the B/B card from the bag, there are 2 ways to pull the B/W card and 3 ways to pull the W/W card. Again suppose that a card is pulled and a black side appears face up. Show that the probability the other side is black is now 0.5. Use the counting method, as before.
+
+| Card | Face Up | Face Down | Weight Prior | Paths |
+|------|---------|-----------|--------------|-------|
+| WW   | 0       | 0         | 3            | 0     |
+| BW   | 1       | 0         | 2            | 2     |
+| BB   | 2       | 2         | 1            | 2     |
+
+**Probability = 2/4 = 0.5**
