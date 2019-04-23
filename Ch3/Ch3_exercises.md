@@ -191,3 +191,172 @@ sum(w == 6) / 1e4
 ## [1] 0.1695
 ```
 There is a 17% probability of observing 6 water in 9 tosses.
+
+# Hard
+
+
+```r
+# birth data from 2-child families where 1 = male and 0 = female 
+# birth1 contains information about the first child
+# birth2 contains information about the second child
+data(homeworkch3)
+```
+
+## 3H1 - Using grid approximation, compute the posterior distribution for the probability of a birth being a boy. Assume a uniform prior probability. Which parameter value maximizes the posterior probability?
+
+
+```r
+# total number of boys
+sum(birth1) + sum(birth2)
+```
+
+```
+## [1] 111
+```
+
+```r
+# total number of babies
+length(birth1) + length(birth2)
+```
+
+```
+## [1] 200
+```
+
+```r
+p_grid <- seq(from = 0, to = 1, length.out = 1000) 
+prior <- rep(1, 1000)
+likelihood <- dbinom(111, size = 200, prob = p_grid)
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior)
+
+# plot posterior distribution
+plot(p_grid, posterior, type = "b")
+```
+
+![](Ch3_exercises_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
+```r
+# highest posterior probability
+p_grid[which.max(posterior)]
+```
+
+```
+## [1] 0.5545546
+```
+
+## 3H2 - Using the sample function, draw 10,000 random parameter values from the posterior distribution you calculated above. Use these samples to estimate the 50%, 89%, and 97% highest posterior density intervals.
+
+
+```r
+# draw 10,000 samples
+samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
+
+# 50% HPDI
+HPDI(samples, prob = 0.5)
+```
+
+```
+##      |0.5      0.5| 
+## 0.5305305 0.5765766
+```
+
+```r
+# 89% HPDI
+HPDI(samples, prob = 0.89)
+```
+
+```
+##     |0.89     0.89| 
+## 0.4994995 0.6096096
+```
+
+```r
+# 97% HPDI
+HPDI(samples, prob = 0.97)
+```
+
+```
+##     |0.97     0.97| 
+## 0.4794795 0.6286286
+```
+
+## 3H3 - Use rbinom to simulate 10,000 replicates of 200 births. You should end up with 10,000 numbers, each one a count of boys out of 200 births. Compare the distribution of predicted numbers of boys to the actual count in the data (111 boys out of 200 births). There are many good ways to visualize the simulations, but the dens command (part of the rethinking package) is probably the easiest way in this case. Does it look like the model fits the data well? That is, does the distribution of predictions include the actual observation as a central, likely outcome?
+
+
+```r
+simulation <- rbinom(1e4, size = 200, prob = samples)
+
+# plot simulations
+dens(simulation) +
+  abline(v = 111, col = "blue")
+```
+
+![](Ch3_exercises_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+
+```
+## integer(0)
+```
+The model appears to fit the data well. 
+
+## 3H4 - Now compare 10,000 counts of boys from 100 simulated first borns only to the number of boys in the first births, birth1. How does the model look in this light?
+
+
+```r
+first_sim <- rbinom(1e4, size = 100, prob = samples)
+
+# number of boys in first birth
+sum(birth1)
+```
+
+```
+## [1] 51
+```
+
+```r
+dens(first_sim) +
+  abline(v = 51, col = "blue")
+```
+
+![](Ch3_exercises_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+
+```
+## integer(0)
+```
+The model is not as accurate under this condition.
+
+## 3H5 - The model assumes that sex of first and second births are independent. To check this assumption, focus now on second births that followed female first borns. Compare 10,000 simulated counts of boys to only those second births that followed girls. To do this correctly, you need to count the number of first borns who were girls and simulate that many births, 10,000 times. Compare the counts of boys in your simulations to the actual observed count of boys following girls. How does the model look in this light? Any guesses what is going on in these data?
+
+
+```r
+# number of firstborn girls
+sum(birth1 == 0)
+```
+
+```
+## [1] 49
+```
+
+```r
+girl_boy_sim <- rbinom(1e4, size = 49, prob = samples)
+
+# number of boys following female firstborns
+sum(birth1 == 0 & birth2 == 1)
+```
+
+```
+## [1] 39
+```
+
+```r
+# plot simulation 
+dens(girl_boy_sim) + 
+  abline(v = 39, col = "blue")
+```
+
+![](Ch3_exercises_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+
+```
+## integer(0)
+```
+The model is highly inaccurate under these conditions. It looks like there is not actually independence between the sex of the firstborn and secondborn?
