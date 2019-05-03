@@ -1,0 +1,89 @@
+---
+title: "Chapter 4 Notes"
+author: "Cassandra"
+date: "May 1, 2019"
+output: html_document
+---
+
+```{r}
+library(rethinking)
+```
+
+There is a dataset of height included in the `rethinking` package. 
+```{r}
+# original dataframe
+data(Howell1)
+d <- Howell1
+# check out data 
+str(d)
+precis(d)
+# make new data frame that only includes adults 
+d2 <- d[d$age >= 18, ]
+```
+
+Grid approximation of posterior probability for Harrow height data.
+```{r}
+# grid approximation 
+mu.list <- seq(from = 140, to = 160, length.out = 200)
+sigma.list <- seq(from = 4, to = 9, length.out = 200)
+post <- expand.grid(mu = mu.list, sigma = sigma.list)
+post$LL <- sapply(1:nrow(post), function(i) sum(dnorm(
+  d2$height,
+  mean = post$mu[i],
+  sd = post$sigma[i],
+  log = TRUE)))
+post$prod <- post$LL + dnorm(post$mu, 178, 20, TRUE) + 
+  dunif(post$sigma, 0, 50, TRUE)
+post$prob <- exp(post$prod - max(post$prod))
+
+# look at posterior distribution with contour plot
+contour_xyz(post$mu, post$sigma, post$prob)
+
+# look at posterior distribution with heat map 
+image_xyz(post$mu, post$sigma, post$prob)
+
+# sample from the posterior 
+sample.rows <- sample(1:nrow(post), size = 1e4, replace = TRUE, prob = post$prob)
+sample.mu <- post$mu[sample.rows]
+sample.sigma <- post$sigma[sample.rows]
+# plot the samples
+plot(sample.mu, sample.sigma, cex = 0.5, pch = 16, col = col.alpha(rangi2, 0.1))
+# marginal posterior densities of mu and sigma
+dens(sample.mu)
+dens(sample.sigma)
+# summarize density width
+HPDI(sample.mu)
+HPDI(sample.sigma)
+```
+
+Analyze only 20 of the heights. We can see that the standard deviation is not normally distributed.  
+```{r}
+d3 <- sample(d2$height, size = 20)
+mu.list <- seq(from = 150, to = 170, length.out = 200)
+sigma.list <- seq(from = 4, to = 20, length.out = 200)
+post2 <- expand.grid(mu = mu.list, sigma = sigma.list)
+post2$LL <- sapply(1:nrow(post2), function (i)
+  sum(dnorm(d3, mean = post2$mu[i], sd = post2$sigma[i], log = TRUE)))
+post2$prod <- post2$LL + dnorm(post2$mu, 178, 20, TRUE) + 
+  dunif(post2$sigma, 0, 50, TRUE)
+post2$prob <- exp(post2$prod) - max(post2$prod)
+sample2.rows <- sample(1:nrow(post2), size = 1e4, replace = TRUE, prob = post2$prob)
+sample2.mu <- post2$mu[sample2.rows]
+sample2.sigma <- post2$sigma[sample2.rows]
+plot(sample2.mu, sample2.sigma, cex = 0.5, col = col.alpha(rangi2, 0.1), xlab = "mu", ylab = "sigma", pch = 16)
+dens(sample2.sigma, norm.comp = TRUE)
+```
+
+We will now use `quap` instead of grid approximation. Start by Writing the model as code.
+```{r}
+flist <- alist(
+  height ~ dnorm(mu, sigma),
+  mu ~ dnorm(178, 20), 
+  sigma ~dunif(0, 50)
+)
+# fit the model to the data
+m4.1 <- quap(flist, data = d2)
+# look at posterior distribution
+precis(m4.1)
+```
+

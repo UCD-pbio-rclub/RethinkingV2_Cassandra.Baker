@@ -1,0 +1,26 @@
+---
+title: "Statistical Rethinking Ch. 4 Part 2"
+author: "Cassandra"
+date: "May 3, 2019"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r message = FALSE}
+library(rethinking)
+```
+
+# Medium 
+
+## 4M4
+
+## 4M5
+
+## 4M6
+
+# Hard
+
+## 4H1
+
+## 4H2
